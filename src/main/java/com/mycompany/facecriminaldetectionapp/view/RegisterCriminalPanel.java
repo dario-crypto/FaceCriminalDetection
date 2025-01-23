@@ -10,20 +10,29 @@ import com.toedter.calendar.JDateChooser;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -34,12 +43,17 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.TextAction;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  *
  * @author user
  */
+
 public class RegisterCriminalPanel extends JPanel {
+
+    private CriminalController cc;
 
     private final JTextField nameField = new JTextField();
     //private final CriminalController criminalController = new CriminalController();
@@ -57,21 +71,33 @@ public class RegisterCriminalPanel extends JPanel {
     private final JButton loadImageButton = new JButton("Load Image");
     private final JPanel fileChooserPanel = new JPanel();
     private final Dimension textFieldSize = new Dimension(200, 20);
-    private final Color backGroundColor = new Color(28, 46, 74);
+    private final Color backGroundColor = Color.BLACK;
     private final JPanel savePanel = new JPanel();
     private final JPanel credentialsPanel = new JPanel();
     private final JPanel credentialPanelWrapper = new JPanel();
     private final JPanel gridPanel = new JPanel();
     private final JLabel imagesLoadLabel = new JLabel("Nessuna immagine caricata");
     private final Set<String> pathImages = new HashSet<>();
-
+    private final Image backgroundImage;
     private String pathImage;
 
-    public RegisterCriminalPanel() {
+    @Override
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        System.err.println("sfondooooo");
+        g.drawImage(backgroundImage, 0, 0, null);
 
+    }
+
+    public RegisterCriminalPanel(CriminalController cc) {
+        this.cc = cc;
+        System.out.println("Creato da srping");
+        backgroundImage = Toolkit.getDefaultToolkit().createImage("C:\\Users\\user\\Documents\\NetBeansProjects\\FaceCriminalDetectionApp\\images\\cyber-criminal.png");
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(backGroundColor);
+
         savePanel.setBackground(backGroundColor);
+
         credentialsPanel.setBackground(backGroundColor);
         credentialPanelWrapper.setBackground(backGroundColor);
         gridPanel.setBackground(backGroundColor);
@@ -133,15 +159,14 @@ public class RegisterCriminalPanel extends JPanel {
         JLabel weightLabel = new JLabel("Weight(cm)");
         weightLabel.setForeground(Color.WHITE);
         gridPanel.add(weightLabel);
-
         gridPanel.add(weightField);
 
         JLabel signsLabel = new JLabel("Distinctive signs");
         signsLabel.setForeground(Color.WHITE);
         gridPanel.add(signsLabel);
-
         gridPanel.add(distinctiveSignsField);
 
+       
         JLabel genderLabel = new JLabel("Gender");
         genderLabel.setForeground(Color.WHITE);
         //credentialsPanel.add(genderLabel);
@@ -160,8 +185,9 @@ public class RegisterCriminalPanel extends JPanel {
 
         credentialPanelWrapper.add(Box.createHorizontalGlue());
         credentialPanelWrapper.add(credentialsPanel);
+
         credentialPanelWrapper.add(Box.createHorizontalGlue());
-   
+
         //add(credentialsPanel);
         add(credentialPanelWrapper);
 
@@ -232,11 +258,11 @@ public class RegisterCriminalPanel extends JPanel {
                 if (pathImage != null) {
 
                     if (!pathImage.isEmpty() && !pathImage.isBlank()) {
-                        c.setPathImage(pathImage);
+                        c.setImageName(pathImage);
                     }
                 }
 
-               // criminalController.saveCriminal(c);
+                cc.registerCriminal(c);
             }
         });
 
@@ -254,7 +280,7 @@ public class RegisterCriminalPanel extends JPanel {
         return sb.toString();
 
     }
-/*
+    /*
     public static void main(String args[]) {
 
         JFrame frame = new JFrame();
@@ -263,5 +289,5 @@ public class RegisterCriminalPanel extends JPanel {
         frame.add(new RegisterCriminalPanel());
         frame.setVisible(true);
     }
-*/
+     */
 }

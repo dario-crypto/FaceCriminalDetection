@@ -32,11 +32,15 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
@@ -70,13 +74,10 @@ public class WebcamViewerExample extends JPanel implements Runnable, WebcamListe
     private WebcamPicker picker = null;
     private BoundingBox boundingBoxPanel = new BoundingBox();
     private CriminalController controller = new CriminalController();
+    private final JLayeredPane layeredPane = new JLayeredPane();
 
-    public class ThreadWriter implements Runnable {
-
-        @Override
-        public void run() {
-
-        }
+    public WebcamViewerExample() {
+        setLayout(new BorderLayout());
 
     }
 
@@ -104,15 +105,33 @@ public class WebcamViewerExample extends JPanel implements Runnable, WebcamListe
         return mat;
     }
      */
+    public Image getImage() {
+
+        try {
+            Mat mat = utilities.Utility.bufferedImageToMat(panel.getImage());
+            List<Rect> rects = controller.getBoundingBoxes(panel.getImage());
+            if (!rects.isEmpty()) {
+                Rect rect = rects.get(0);
+                Mat bounds = mat.submat(rect.y, rect.y + rect.height, rect.x, rect.x + rect.width);
+                Imgproc.cvtColor(bounds, bounds, Imgproc.COLOR_RGB2BGR);
+                return utilities.Utility.MatToBufferedImage(bounds);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(WebcamViewerExample.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
     @Override
     public void run() {
 
         // Seleziona la prima webcam disponibile
+        setBackground(Color.BLACK);
         Webcam.addDiscoveryListener(this);
         //setTitle("Java Webcam Capture POC");
         //setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
 
+        //setPreferredSize(new Dimension(800, 800));
         //addWindowListener(this);
         picker = new WebcamPicker();
         picker.addItemListener(this);
@@ -123,31 +142,36 @@ public class WebcamViewerExample extends JPanel implements Runnable, WebcamListe
             System.out.println("No webcams found...");
             System.exit(1);
         }
+        //webcam.close();
 
-        webcam.setViewSize(WebcamResolution.VGA.getSize());
+        if (!webcam.isOpen()) {
+            webcam.setViewSize(WebcamResolution.VGA.getSize());
+            webcam.open();
+        }
 
         webcam.addWebcamListener(WebcamViewerExample.this);
 
         panel = new WebcamPanel(webcam, false);
-    
+        panel.setPreferredSize(new Dimension(800, 600));
 
         panel.setFPSDisplayed(true);
         JButton detectButton = new JButton("Detect");
+        //panel.setMirrored(true);
 
         JPanel optionsPanel = new JPanel();
         optionsPanel.add(detectButton);
 
         //utilizzo di jLayeredPane per sovrapporre il flusso della webcam con il rettangolo
-        JLayeredPane layeredPane = new JLayeredPane();
-        panel.setBounds(0, 0, 800, 600);
-        boundingBoxPanel.setBounds(0, 0, 800, 600);
+        //layeredPane.setPreferredSize(new Dimension(800,800));
+        panel.setBounds(0, 0, 640, 480);
+        boundingBoxPanel.setBounds(0, 0, 640, 480);
         layeredPane.add(panel, JLayeredPane.DEFAULT_LAYER);
         layeredPane.add(boundingBoxPanel, JLayeredPane.PALETTE_LAYER);
 
         add(picker, BorderLayout.NORTH);
         add(layeredPane, BorderLayout.CENTER);
         //add(boundingBoxPanel,BorderLayout.CENTER);
-        add(optionsPanel, BorderLayout.SOUTH);
+        //  add(optionsPanel, BorderLayout.SOUTH);
 
         detectButton.addActionListener(new ActionListener() {
             @Override
@@ -167,10 +191,12 @@ public class WebcamViewerExample extends JPanel implements Runnable, WebcamListe
 
             @Override
             public void run() {
+
                 panel.start();
+
             }
         };
-      
+
         t.setName(
                 "example-starter");
         t.setDaemon(
@@ -178,6 +204,7 @@ public class WebcamViewerExample extends JPanel implements Runnable, WebcamListe
         t.setUncaughtExceptionHandler(
                 this);
         t.start();
+
     }
 
     public class BoundingBox extends JPanel {
@@ -197,7 +224,7 @@ public class WebcamViewerExample extends JPanel implements Runnable, WebcamListe
                 List<Rect> rects = controller.getBoundingBoxes(panel.getImage());
 
                 im = utilities.Utility.bufferedImageToMat(panel.getImage());
-                
+
                 //System.out.println("Larghezza " + panel.getImage().getWidth());
                 //System.out.println("Altezza " + panel.getImage().getHeight());
                 int imgWidth = panel.getImage().getWidth();
@@ -207,11 +234,19 @@ public class WebcamViewerExample extends JPanel implements Runnable, WebcamListe
                 int panelWidth = panel.getWidth();
                 int panelHeight = panel.getHeight();
 
-                // Calcola i fattori di scala
+                // Calcola i fattori di scala in quanto l' immagine ottenuta dalla webcam non e detto che rispetti la dimensione del pannello
                 double scaleX = (double) panelWidth / (double) imgWidth;
                 double scaleY = (double) panelHeight / (double) imgHeight;
-               
+                int tmpX = 0;
+                int tmpY = 0;
+                int tmpWidth = 0;
+                int tmpHeight = 0;
                 for (Rect rect : rects) {
+
+                    tmpX += rect.x;
+                    tmpY += rect.y;
+                    tmpWidth += rect.width;
+                    tmpHeight += rect.height;
 
                     int newX = (int) (rect.x * scaleX);
                     int newY = (int) (rect.y * scaleY);
@@ -230,6 +265,18 @@ public class WebcamViewerExample extends JPanel implements Runnable, WebcamListe
                      */
                 }
 
+                /*
+
+                if (rects.size() > 0) {
+                    int avgX = (int) (tmpX / rects.size() * scaleX);
+                    int avgY = (int) (tmpY / rects.size() * scaleY);
+                    int avgHeight = (int) (tmpHeight / rects.size() * scaleY);
+                    int avgWidth = (int) (tmpWidth / rects.size() * scaleX);
+                    g2d.setColor(new Color(255, 0, 0, 128)); // Rosso semi-trasparente
+                    g2d.setStroke(new BasicStroke(5));      // Spessore bordo
+                    g2d.drawRect(avgX, avgY, avgWidth, avgHeight);
+                }
+                 */
                 //Imgcodecs.imwrite("C:\\Users\\user\\Documents\\NetBeansProjects\\FaceCriminalDetectionApp\\src\\main\\java\\com\\mycompany\\facecriminaldetectionapp\\model\\dario_output.jpg", im);
             }
         }
@@ -244,9 +291,11 @@ public class WebcamViewerExample extends JPanel implements Runnable, WebcamListe
             frame.setLayout(new BorderLayout());
             frame.add(webcamViewerExample, BorderLayout.CENTER);
             //perfetto con 640 e 480
-            frame.setSize(800, 600); // Imposta dimensioni iniziali
+            frame.setPreferredSize(new Dimension(640, 480)); // Imposta dimensioni iniziali
             frame.setVisible(true);
+            frame.pack();
             webcamViewerExample.run(); // Avvia il pannello webcam
+            frame.setBackground(Color.yellow);
         });
     }
 

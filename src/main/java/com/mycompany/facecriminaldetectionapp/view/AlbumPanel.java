@@ -4,27 +4,35 @@
  */
 package com.mycompany.facecriminaldetectionapp.view;
 
+/**
+ *
+ * @author Dario
+ */
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
@@ -35,155 +43,303 @@ import javax.swing.border.LineBorder;
  */
 public class AlbumPanel extends JPanel {
 
-    private List<Image> images = new ArrayList<>();
-    private int hGap;
-    private int vGap;
-    private int nRows;
-    private int nCols;
-    private final int width;
-    private final int height;
-    private int xOffset = 0;
-    private int yOffset = 0;
-    private static final Color backGroundColor = new Color(28, 46, 74);
-    private final GridLayout grid = new GridLayout();
-    private List<Integer> selectedImageIndices = new ArrayList<>();
+    private final PhotosPanel photosPanel = new PhotosPanel();
+    private final OptionsPanel optionsPanel = new OptionsPanel();
+    private final JLabel message = new JLabel();
+    private final JPanel messagePanel = new JPanel();
+    private final int capacity;
+    //private static final Color backGroundColor = new Color(28, 46, 74);
+    private static final Color backGroundColor = Color.BLACK;
+    private final int photoWidth;
+    private final int photoHeight;
+    private final Color warningColor = new Color(255, 160, 0);
+    private int hGap = 1;
+    private int vGap = 1;
 
-    public void addImage(Image image) {
+    private final Image backgroundImage;
 
-        images.add(image);
+    @Override
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        System.out.println("sfondooooo");
+        g.drawImage(backgroundImage, 20, 20, null);
 
+    }
+
+    public void sethGap(int hGap) {
+        this.hGap = hGap;
+    }
+
+    public void setvGap(int vGap) {
+        this.vGap = vGap;
+    }
+
+    private List<CardPanel> cards;
+
+    public void removeCards() {
+
+        cards.clear();
         repaint();
 
     }
 
-    public int getxOffset() {
-        return xOffset;
+    public void removeCardById(int id) {
+
+        cards = cards.stream().filter(c -> c.index != id).collect(Collectors.toList());
+        /**
+         * Se chiami repaint() su un pannello contenitore (come un JPanel che
+         * contiene altri JPanel), tutti i pannelli figli verranno anch'essi
+         * ridisegnati,
+         */
+        repaint();
     }
 
-    public void setxOffset(int xOffset) {
-        this.xOffset = xOffset;
+    public void clearMessage() {
+
+        message.setText("");
     }
 
-    public int getyOffset() {
-        return yOffset;
-    }
+    public AlbumPanel(int photoWidth, int photoHeigth, int capacity) {
+        this.photoWidth = photoWidth;
+        this.photoHeight = photoHeigth;
+        this.capacity = capacity;
 
-    public void setyOffset(int yOffset) {
-        this.yOffset = yOffset;
-    }
+        backgroundImage = Toolkit.getDefaultToolkit().createImage("C:\\Users\\user\\Documents\\NetBeansProjects\\FaceCriminalDetectionApp\\images\\cyber-criminal.png");
 
-    public void setHGap(int hGap) {
-        this.hGap = hGap;
-    }
+        cards = new ArrayList(capacity);
 
-    public void setVGap(int vGap) {
-        this.vGap = vGap;
-    }
-
-    public int getnRows() {
-        return nRows;
-    }
-
-    public void setnRows(int nRows) {
-        this.nRows = nRows;
-    }
-
-    public int getnCols() {
-        return nCols;
-    }
-
-    public void setnCols(int nCols) {
-        this.nCols = nCols;
-    }
-
-    public AlbumPanel(int width, int height) {
-        this.width = width;
-        this.height = height;
-
-        setLayout(grid);
+        setLayout(new BorderLayout());
+        setPreferredSize(new Dimension(500, 600));
+        messagePanel.add(message);
+        messagePanel.setBackground(backGroundColor);
+        messagePanel.setPreferredSize(new Dimension(500, 30));
+        add(messagePanel, BorderLayout.NORTH);
+        add(photosPanel, BorderLayout.CENTER);
+        add(optionsPanel, BorderLayout.SOUTH);
         setBackground(backGroundColor);
-        //setPreferredSize(new Dimension(200, 800));
-        setVisible(true);
+        message.setForeground(Color.WHITE);
+
     }
 
     /*
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        Graphics2D g2d = (Graphics2D) g;
-        int xTempOffset = 0, yTempOffset = 0;
-        for (int i = 0; i < nCols; i++) {
-            for (int j = 0; j < nRows; j++) {
-                try {
-                    Image image = images.get(j * nCols + i);
-                    System.out.println("DRAW");
+          @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            System.out.println("Repaint AlbumPanel");
+            photosPanel.repaint();
+        }
+     */
+    public class PhotosPanel extends JPanel {
 
-                    g2d.drawImage(image, i * vGap + i * height, j * hGap + j * width, width, height, new ImageObserver() {
-                        @Override
-                        public boolean imageUpdate(Image img, int infoflags, int x, int y, int width, int height) {
-                            return false;
-                        }
-                    });
+        private final FlowLayout flow = new FlowLayout();
 
-                } catch (IndexOutOfBoundsException ex) {
-                    System.out.println(ex);
-                }
+        public PhotosPanel() {
+
+            setBackground(backGroundColor);
+
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+
+            // rimuove anche i parametri settati del layout
+            removeAll();
+            flow.setHgap(hGap);
+            flow.setVgap(vGap);
+            setLayout(flow);
+            for (CardPanel card : cards) {
+                add(card);
+            }
+
+            revalidate();
+
+        }
+
+    }
+
+    public void addCard(CardPanel panel) {
+
+        clearMessage();
+        messagePanel.setBackground(Color.BLACK);
+        if (cards.size() < capacity) {
+            cards.add(panel);
+            repaint();
+
+        } else {
+
+            message.setText("Hai superato il numero di foto consentite!");
+            messagePanel.setBackground(warningColor);
+        }
+        photosPanel.add(panel);
+
+    }
+
+    public void addImage(Image image) {
+        int maxId = 0;
+        for (CardPanel card : cards) {
+            if (card.index > maxId) {
+                maxId = card.index;
             }
         }
 
-    }
-     */
-    public List<Image> getSelectedImages() {
-        List<Image> imgs = new ArrayList<>();
-        for (Integer index : selectedImageIndices) {
-            imgs.add(images.get(index));
-
-        }
-        return imgs;
+        addCard(new CardPanel(image, maxId + 1));
     }
 
-    @Override
-    protected void paintComponent(Graphics g) {
+    public class OptionsPanel extends JPanel {
 
-        grid.setRows(images.size());
+        //private JButton selectAllButton = new JButton("Select All");
+        private final JButton removeAllButton = new JButton();
+        //private JButton deselectAllButton = new JButton("Deselect All");
 
-        grid.setColumns(2);
-        removeAll();
-        for (int i = 0; i < images.size(); i++) {
-            JButton button = new JButton();
-            Image image = images.get(i);
-            ImageIcon icon = new ImageIcon(image);
-            Image scaleImage = icon.getImage().getScaledInstance(80, 80, Image.SCALE_DEFAULT);
-            button.setIcon(new ImageIcon(scaleImage));
-            button.setPreferredSize(new Dimension(50, 50));
-            button.setBackground(backGroundColor);
-            button.setBorder(new LineBorder(backGroundColor));
-            JCheckBox box = new JCheckBox(String.valueOf(i));
-            box.setForeground(Color.white);
+        private final JButton addPhotoButton = new JButton("Search");
 
-            box.addActionListener(new ActionListener() {
+        public OptionsPanel() {
+
+            FlowLayout layout = new FlowLayout();
+            setLayout(layout);
+            removeAllButton.setBackground(Color.BLACK);
+            setPreferredSize(new Dimension(100, 100));
+            setBackground(Color.BLACK);
+
+            // removeAllButton.setForeground(Color.WHITE);
+            removeAllButton.setBorder(new LineBorder(Color.BLACK));
+
+            removeAllButton.setIcon(new ImageIcon("C:\\Users\\user\\Documents\\NetBeansProjects\\FaceCriminalDetectionApp\\images\\bin_resize.png"));
+
+            /*
+            selectAllButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    System.out.println("Ciaoo");
 
-                    int index = Integer.parseInt(box.getText());
-                    System.out.println(index);
-                    if (box.isSelected()) {
-                        System.out.println("Selezionato: " + index);
-                        selectedImageIndices.add(index);
+                    if (cards.size() <= 0) {
+                        message.setText("Nessuna foto scattata!");
+                        messagePanel.setBackground(warningColor);
                     } else {
-                        System.out.println("Deselezionato: " + index);
-                        selectedImageIndices = selectedImageIndices.stream().filter(i -> i != index).collect(Collectors.toList());
+                        for (CardPanel card : cards) {
+                            card.box.setSelected(true);
+                        }
                     }
-                    System.out.println(selectedImageIndices);
                 }
 
             });
-            box.setBackground(backGroundColor);
+             */
+            removeAllButton.addActionListener((ActionEvent e) -> {
+                if (cards.size() <= 0) {
+                    message.setText("Nessuna foto scattata");
+                    messagePanel.setBackground(warningColor);
+                } else {
+                    int input = JOptionPane.showConfirmDialog(null, "Sei sicuro?");
+                    if (JOptionPane.YES_OPTION == input) {
 
-            add(button);
+                        clearMessage();
+                        removeCards();
+                    }
+                }
+            });
+
+            /*
+            deselectAllButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+
+                    if (cards.size() <= 0) {
+                        message.setText("Nessuna foto scattata!");
+                        messagePanel.setBackground(warningColor);
+
+                    } else {
+                        for (CardPanel card : cards) {
+                            card.box.setSelected(false);
+                        }
+                    }
+                }
+
+            });
+
+             */
+            add(addPhotoButton);
+            // add(selectAllButton);
+            //add(deselectAllButton);
+            add(removeAllButton);
+
+            addPhotoButton.addActionListener((ActionEvent e) -> {
+                String imagePath = "C:\\Users\\user\\Documents\\NetBeansProjects\\FaceCriminalDetectionApp\\images\\Brad_Pitt.jpg";
+                Image image = getImageByPath(imagePath);
+                addImage(image);
+                getSelectedImage();
+            });
+
+        }
+
+    }
+
+    public Image getSelectedImage() {
+        for (CardPanel card : cards) {
+
+            if (card.box.isSelected()) {
+                return card.image;
+            }
+        }
+        return null;
+    }
+
+    public class CardPanel extends JPanel {
+
+        private final JButton photoButton = new JButton();
+        private JCheckBox box = new JCheckBox();
+        private final JButton deleteButton = new JButton();
+        private final Image image;
+        private final int index;
+
+        public CardPanel(Image image, int index) {
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            this.image = image;
+            this.index = index;
+            ImageIcon icon = new ImageIcon(image);
+            Image scaleImage = icon.getImage().getScaledInstance(photoWidth, photoHeight, Image.SCALE_AREA_AVERAGING);
+            photoButton.setIcon(new ImageIcon(scaleImage));
+            photoButton.setBackground(backGroundColor);
+            photoButton.setForeground(backGroundColor);
+            photoButton.setBorder(new LineBorder(backGroundColor));
+            photoButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+            deleteButton.setIcon(new ImageIcon("C:\\Users\\user\\Documents\\NetBeansProjects\\FaceCriminalDetectionApp\\images\\remove_resize.png"));
+
+            box.setBackground(Color.BLACK);
+            box.setText(String.valueOf(index));
+            box.setForeground(Color.white);
             add(box);
+            setBackground(backGroundColor);
+            add(deleteButton);
+            //FlowLayout flow = new FlowLayout();
+            //flow.setHgap(30);
+            JPanel helperPanel = new JPanel();
+            helperPanel.add(box);
 
+            helperPanel.add(deleteButton);
+            helperPanel.setPreferredSize(new Dimension(photoWidth, 40));
+            deleteButton.setBackground(Color.BLACK);
+            deleteButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            //deleteButton.setForeground(Color.WHITE);
+            helperPanel.setBackground(Color.BLACK);
+            setBackground(backGroundColor);
+
+            box.addActionListener((ActionEvent e) -> {
+                for (CardPanel card : cards) {
+                    if (card.box == box) {
+                        card.box.setSelected(true);
+                    } else {
+                        card.box.setSelected(false);
+                    }
+                }
+            });
+
+            add(photoButton);
+            add(helperPanel);
+            deleteButton.addActionListener((ActionEvent e) -> {
+                clearMessage();
+                messagePanel.setBackground(backGroundColor);
+                removeCardById(index);
+            });
         }
 
     }
@@ -212,33 +368,22 @@ public class AlbumPanel extends JPanel {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame();
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setPreferredSize(new Dimension(200,700));
+            //frame.setPreferredSize(new Dimension(500, 800));
             frame.setVisible(true);
             frame.setBackground(backGroundColor);
-            AlbumPanel albumPanel = new AlbumPanel(80, 80);
-            albumPanel.setHGap(10);
-            albumPanel.setVGap(10);
-            albumPanel.setnRows(2);
-            albumPanel.setnCols(3);
-            albumPanel.setxOffset(0);
-            albumPanel.setyOffset(0);
+            AlbumPanel albumPanel = new AlbumPanel(150, 200, 6);
+            albumPanel.sethGap(6);
+            albumPanel.setvGap(6);
+
             frame.add(albumPanel);
             frame.pack();
 
-            String imagePath = "C:\\Users\\user\\Documents\\NetBeansProjects\\FaceCriminalDetectionApp\\src\\main\\java\\com\\mycompany\\facecriminaldetectionapp\\model\\Brad_Pitt.jpg";
+            String imagePath = "C:\\Users\\Dario\\Documents\\NetBeansProjects\\FaceCriminalDetectionApp\\src\\main\\java\\com\\mycompany\\facecriminaldetectionapp\\Brad_Pitt.jpg";
             Image image1 = getImageByPath(imagePath);
 
-            albumPanel.addImage(image1);
-            albumPanel.repaint();
-            albumPanel.addImage(image1);
-
-            albumPanel.addImage(image1);
-            albumPanel.addImage(image1);
-            albumPanel.repaint();
-            albumPanel.addImage(image1);
-
-            albumPanel.repaint();
+            //albumPanel.repaint();
             System.out.println("Repaint");
         });
     }
+
 }
