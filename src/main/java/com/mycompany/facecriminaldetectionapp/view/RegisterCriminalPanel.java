@@ -50,7 +50,6 @@ import org.springframework.stereotype.Component;
  *
  * @author user
  */
-
 public class RegisterCriminalPanel extends JPanel {
 
     private CriminalController cc;
@@ -61,7 +60,7 @@ public class RegisterCriminalPanel extends JPanel {
     private JDateChooser dateChooser = new JDateChooser();
     private final ButtonGroup genderGroup = new ButtonGroup();
     private final JTextField nationalityField = new JTextField();
-    
+
     private final JTextField heigthField = new JTextField();
     private final JTextField weightField = new JTextField();
     private final JTextField eyesColorField = new JTextField();
@@ -121,14 +120,13 @@ public class RegisterCriminalPanel extends JPanel {
         nameLabel.setForeground(Color.white);
         gridPanel.add(nameLabel);
         gridPanel.add(nameField);
-        
+
         JLabel surnameLabel = new JLabel("Surname");
         surnameLabel.setForeground(Color.WHITE);
         gridPanel.add(surnameLabel);
         gridPanel.add(surnameField);
-        
-        //credentialsPanel.add(p1)
 
+        //credentialsPanel.add(p1)
         JLabel dobLabel = new JLabel("Date of Birth");
         dobLabel.setForeground(Color.WHITE);
         gridPanel.add(dobLabel);
@@ -172,7 +170,6 @@ public class RegisterCriminalPanel extends JPanel {
         gridPanel.add(signsLabel);
         gridPanel.add(distinctiveSignsField);
 
-       
         JLabel genderLabel = new JLabel("Gender");
         genderLabel.setForeground(Color.WHITE);
         //credentialsPanel.add(genderLabel);
@@ -266,6 +263,11 @@ public class RegisterCriminalPanel extends JPanel {
                     if (!pathImage.isEmpty() && !pathImage.isBlank()) {
                         c.setImageName(pathImage);
                     }
+                }
+
+                String surname = surnameField.getText();
+                if (surname != null) {
+                    c.setSurmame(surname);
                 }
 
                 cc.registerCriminal(c);
