@@ -5,6 +5,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 CREATE TABLE criminals (
 id serial not null primary key,
 name varchar(50) not null,
+surname varchar(50) not null,
 dob TIME,
 gender varchar(1),
 nationality varchar(20),

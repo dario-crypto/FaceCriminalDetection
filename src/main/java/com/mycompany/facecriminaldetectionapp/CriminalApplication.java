@@ -31,7 +31,7 @@ public class CriminalApplication {
 
     public static void main(String args[]) {
 
-        //docker exec -it 564ab0f6c9e2365f4c4410e0920d35a3ce6916a4558c7cc33a7a7a72a6a23eb9 psql -U postgres -d criminaldb
+        //docker exec -it 564ab0f6c9e2365f4c4410e0920d35a3ce6916a4558c7cc33a7a7a72a6a23eb9 psql -U criminal -d criminaldb
         //criminaldb=# select * from criminals \g
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         // ApplicationContext context = SpringApplication.run(CriminalApplication.class, args);

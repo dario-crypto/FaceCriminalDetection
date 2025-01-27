@@ -37,6 +37,8 @@ public class Criminal {
     private Long id;
     @Column(nullable = false)
     private String name;
+    @Column(nullable = false)
+    private String surmame;
     private LocalDate dob;
     private String gender;
     private String nationality;

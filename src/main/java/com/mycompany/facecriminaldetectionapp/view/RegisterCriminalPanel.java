@@ -56,10 +56,12 @@ public class RegisterCriminalPanel extends JPanel {
     private CriminalController cc;
 
     private final JTextField nameField = new JTextField();
+    private final JTextField surnameField = new JTextField();
     //private final CriminalController criminalController = new CriminalController();
     private JDateChooser dateChooser = new JDateChooser();
     private final ButtonGroup genderGroup = new ButtonGroup();
     private final JTextField nationalityField = new JTextField();
+    
     private final JTextField heigthField = new JTextField();
     private final JTextField weightField = new JTextField();
     private final JTextField eyesColorField = new JTextField();
@@ -102,7 +104,7 @@ public class RegisterCriminalPanel extends JPanel {
         credentialPanelWrapper.setBackground(backGroundColor);
         gridPanel.setBackground(backGroundColor);
 
-        GridLayout grid = new GridLayout(16, 1);
+        GridLayout grid = new GridLayout(18, 2);
         grid.setVgap(5);
 
         gridPanel.setLayout(grid);
@@ -117,10 +119,14 @@ public class RegisterCriminalPanel extends JPanel {
         nameLabel.setBackground(Color.WHITE);
         //nameLabel.setBorder(new EmptyBorder(0, 0, 0, 10));
         nameLabel.setForeground(Color.white);
-
         gridPanel.add(nameLabel);
-
         gridPanel.add(nameField);
+        
+        JLabel surnameLabel = new JLabel("Surname");
+        surnameLabel.setForeground(Color.WHITE);
+        gridPanel.add(surnameLabel);
+        gridPanel.add(surnameField);
+        
         //credentialsPanel.add(p1)
 
         JLabel dobLabel = new JLabel("Date of Birth");
